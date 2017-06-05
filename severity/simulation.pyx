@@ -1,5 +1,5 @@
 """
-Copyright (c) 2015 Genome Research Ltd.
+Copyright (c) 2017 Genome Research Ltd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -25,7 +25,7 @@ from cython.operator cimport dereference as deref
 
 from severity.weights cimport WeightedChoice, Chooser
 
-cdef extern from "../src/simulate.h":
+cdef extern from "simulate.h":
     double _analyse(Chooser, vector[double], double, int, int)
 
 def analyse(WeightedChoice choices, severity, observed, count,
