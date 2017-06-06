@@ -1,4 +1,6 @@
 
+import time
+
 import pysam
 
 from denovonear.ensembl_requester import EnsemblRequest
@@ -37,11 +39,13 @@ def main():
     cadd = pysam.TabixFile(cadd_path)
     
     # open de novo mutations
-    path = '/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2016-04-19.txt'
+    path = '/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2015-11-24.txt'
     all_de_novos = open_mutations(path)
     
     mut_dict = load_mutation_rates()
     
+    output = open('severity_results.txt', 'w')
+    output.write('symbol\tp_value\tn_de_novos\tcpu_time\n')
     for symbol in all_de_novos:
         
         if symbol in ['', '.']:
@@ -62,15 +66,19 @@ def main():
         chrom = transcripts[0].get_chrom()
         
         # get per site/allele severity scores
-        severity = [ get_severity(cadd, chrom, x['pos'], x['alt']) for x in rates ]
+        severity = get_severity(cadd, chrom, rates)
         
         # TODO: weight severity scores
         
         # get summed score for observed de novos
-        observed = sum(( get_severity(cadd, chrom, x['position'], x['alt']) for x in de_novos ))
+        observed = sum(( get_severity(cadd, chrom, de_novos) ))
         
+        start = time.time()
         # simulate distribution of summed scores within transcript
-        analyse(deref(rates.thisptr), severity, observed, len(de_novos), 100000000)
+        p_value = analyse(rates, severity, observed, len(de_novos), 1000000)
+        elapsed = time.time() - start
+        line = '{}\t{}\t{}\t{}\n'.format(symbol, p_value, len(de_novos), elapsed)
+        output.write(line)
 
 if __name__ == '__main__':
     main()
