@@ -10,12 +10,6 @@ if sys.platform == "darwin":
     EXTRA_COMPILE_ARGS = ["-stdlib=libc++"]
 
 severity = cythonize([
-    Extension("severity.weights",
-        extra_compile_args=EXTRA_COMPILE_ARGS,
-        sources=["severity/weights.pyx",
-            "src/weighted_choice.cpp"],
-        include_dirs=["src/"],
-        language="c++"),
     Extension("severity.simulation",
         extra_compile_args=EXTRA_COMPILE_ARGS,
         sources=["severity/simulation.pyx",
