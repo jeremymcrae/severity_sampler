@@ -30,5 +30,24 @@ cdef extern from "simulate.h":
 
 def analyse(WeightedChoice choices, severity, observed, count,
         iterations=100000000):
+    ''' analyse the severity score of de novo mutations in a gene
+    
+    estimate the chance of observing a total severity euqal to or greater than
+    the summed scores for the observed de novos in a gene, given the same number
+    of de novo mutations.
+    
+    Args:
+        choices: WeightedChoice object of mutation rates per position and alt
+            allele for all possible SNVs within a gene.
+        severity: list of severity scores, matching the same position and alt
+            allele order as for the choices object.
+        observed: summed severity score across the observed de novo mutations.
+        count: number of observed de novo mutations.
+        iterations: number of iterations to run
+    
+    Returns:
+        probability of getting the observed severity score (or greater) under
+        the null distribution.
+    '''
     
     return _analyse(deref(choices.thisptr), severity, observed, count, iterations)
