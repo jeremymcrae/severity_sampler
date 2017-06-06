@@ -9,7 +9,7 @@ from denovonear.weights import WeightedChoice
 
 from severity.open_mutations import open_mutations
 from severity.open_severity import get_severity
-from severity.simulate import analyse
+from severity.simulation import analyse
 
 def get_site_sampler(transcripts, mut_dict):
     '''
@@ -39,9 +39,9 @@ def main():
     # open de novo mutations
     path = '/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2016-04-19.txt'
     all_de_novos = open_mutations(path)
-
+    
     mut_dict = load_mutation_rates()
-
+    
     for symbol in all_de_novos:
         
         if symbol in ['', '.']:
