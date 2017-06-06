@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 from libcpp.vector cimport vector
 from cython.operator cimport dereference as deref
 
-from severity.weights cimport WeightedChoice, Chooser
+from denovonear.weights cimport WeightedChoice, Chooser
 
 cdef extern from "simulate.h":
     double _analyse(Chooser, vector[double], double, int, int)
