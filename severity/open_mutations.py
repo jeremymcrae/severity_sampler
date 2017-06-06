@@ -12,9 +12,19 @@ def open_mutations(path, indels=False):
     genes = {}
     with open(path) as handle:
         header = handle.readline().strip().split('\t')
+        chrom_idx = header.index('chrom')
+        pos_idx = header.index('pos')
+        ref_idx = header.index('ref')
+        alt_idx = header.index('alt')
+        symbol_idx = header.index('symbol')
+        cq_idx = header.index('consequence')
         
         for line in handle:
-            _, chrom, pos, ref, alt, symbol, cq, *_ = line.strip().split('\t')
+            line = line.strip().split('\t')
+            
+            chrom, pos, ref, alt, symbol, cq = line[chrom_idx], \
+                line[pos_idx], line[ref_idx], line[alt_idx], \
+                line[symbol_idx], line[cq_idx]
             
             # ignore noncoding
             if cq not in MISSENSE_CQ | LOF_CQ:
