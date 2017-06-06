@@ -32,7 +32,7 @@ setup (name="severity",
         author_email="jeremy.mcrae@sanger.ac.uk",
         license="MIT",
         packages=["severity"],
-        install_requires=["denovonear >= 0.4.0",
+        install_requires=["denovonear >= 0.4.1",
         ],
         classifiers=[
             "Development Status :: 3 - Alpha",
