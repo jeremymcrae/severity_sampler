@@ -71,5 +71,5 @@ double _analyse(Chooser &choices, std::vector<double> severity, double observed,
     double position = pos - dist.begin();
     
     // estimate the probability from the position
-    return (1.0 + position)/(1.0 + dist.size());
+    return (1.0 + (dist.size() - position))/(1.0 + dist.size());
 }
