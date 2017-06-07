@@ -47,7 +47,7 @@ def get_options():
     parser.add_argument('--genome-build', default='grch37',
         help='Genome build for coordinates from Ensembl.')
     
-    parser.add_argument('--output', default='results.txt',
+    parser.add_argument('-o', '--output', default='results.txt',
         help='Path to write output results to.')
     
     return parser.pasre_args()
