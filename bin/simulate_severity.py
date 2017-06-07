@@ -19,7 +19,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import time
+import argparse
 
 import pysam
 
@@ -32,6 +32,25 @@ from denovonear.weights import WeightedChoice
 from severity.open_mutations import open_mutations
 from severity.open_severity import get_severity
 from severity.simulation import analyse
+
+def get_options():
+    parser = argparse.ArgumentParser('')
+    parser.add_argument('--de-novos',
+        default='/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2015-11-24.txt',
+        help='path to table of de novo mutations. Table must contain columns ' \
+            'named chrom, pos, ref, alt, symbol, and consequence.'),
+    parser.add_argument('--cadd',
+        default='/lustre/scratch113/projects/ddd/users/ps14/CADD/whole_genome_SNVs.tsv.gz',
+        help='Path to tabix-indexed CADD scores for all SNVs.')
+    parser.add_argument('--cache', default='cache',
+        help='Path to cache transcript coordinates and sequence from Ensembl.')
+    parser.add_argument('--genome-build', default='grch37',
+        help='Genome build for coordinates from Ensembl.')
+    
+    parser.add_argument('--output', default='results.txt',
+        help='Path to write output results to.')
+    
+    return parser.pasre_args()
 
 def get_site_sampler(transcripts, mut_dict):
     ''' get per position and alt allele mutation probability sampler.
@@ -105,36 +124,30 @@ def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos):
     # get summed score for observed de novos
     observed = sum(( get_severity(cadd, chrom, de_novos) ))
     
-    start = time.time()
     # simulate distribution of summed scores within transcript
-    p_value = analyse(rates, severity, observed, len(de_novos), 1000000)
-    elapsed = time.time() - start
-    
-    return p_value, elapsed
+    return analyse(rates, severity, observed, len(de_novos), 1000000)
 
 def main():
-    ensembl = EnsemblRequest(cache_folder='cache', genome_build='grch37')
+    args = get_options()
     
-    cadd_path = '/lustre/scratch113/projects/ddd/users/ps14/CADD/whole_genome_SNVs.tsv.gz'
-    cadd = pysam.TabixFile(cadd_path)
+    ensembl = EnsemblRequest(args.cache, args.genome_build)
+    cadd = pysam.TabixFile(args.cadd)
     
     # open de novo mutations
-    path = '/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2015-11-24.txt'
-    all_de_novos = open_mutations(path)
+    all_de_novos = open_mutations(args.de_novos)
     
     mut_dict = load_mutation_rates()
     
-    output = open('severity_results.txt', 'w')
-    output.write('symbol\tp_value\tn_de_novos\tcpu_time\n')
+    output = open(args.output, 'w')
+    output.write('symbol\tseverity_p_value\n')
     for symbol in all_de_novos:
-        
         if symbol in ['', '.']:
             continue
         
         print(symbol)
         de_novos = all_de_novos[symbol]
-        p_value, elapsed = analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos)
-        line = '{}\t{}\t{}\t{}\n'.format(symbol, p_value, len(de_novos), elapsed)
+        p_value = analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos)
+        line = '{}\t{}\n'.format(symbol, p_value)
         output.write(line)
 
 if __name__ == '__main__':
