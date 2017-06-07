@@ -109,7 +109,7 @@ def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos):
         # create gene/transcript for de novo mutations
         transcripts = load_gene(ensembl, symbol, sites)
     except IndexError:
-        continue
+        return 'NA'
     
     # get per site/allele mutation rates
     rates = get_site_sampler(transcripts, mut_dict)
