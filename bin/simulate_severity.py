@@ -50,7 +50,7 @@ def get_options():
     parser.add_argument('-o', '--output', default='results.txt',
         help='Path to write output results to.')
     
-    return parser.pasre_args()
+    return parser.parse_args()
 
 def get_site_sampler(transcripts, mut_dict):
     ''' get per position and alt allele mutation probability sampler.
