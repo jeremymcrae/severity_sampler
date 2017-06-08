@@ -60,7 +60,7 @@ def parse(line, indices):
     line = line.strip().split('\t')
     
     chrom = line[indices['chrom']]
-    pos = line[indices['pos']]
+    pos = int(line[indices['pos']])
     ref = line[indices['ref']]
     alt = line[indices['alt']]
     symbol = line[indices['symbol']]
@@ -90,13 +90,13 @@ def open_mutations(path, indels=False):
             if cq not in MISSENSE_CQ | LOF_CQ:
                 continue
             
-            if symbol not in genes:
-                genes[symbol] = []
-            
             if not indels and (len(ref) > 1 or len(alt) > 1):
                 continue
             
-            genes[symbol].append({'chrom': chrom, 'position': int(pos), 'ref': ref,
+            if symbol not in genes:
+                genes[symbol] = []
+            
+            genes[symbol].append({'chrom': chrom, 'position': pos, 'ref': ref,
                 'alt': alt, 'consequence': cq})
     
     return genes
