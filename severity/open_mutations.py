@@ -96,7 +96,7 @@ def open_mutations(path, indels=False):
             if symbol not in genes:
                 genes[symbol] = []
             
-            genes[symbol].append({'chrom': chrom, 'position': pos, 'ref': ref,
+            genes[symbol].append({'chrom': chrom, 'pos': pos, 'ref': ref,
                 'alt': alt, 'consequence': cq})
     
     return genes

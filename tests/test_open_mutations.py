@@ -51,7 +51,7 @@ class TestLoadGenePy(unittest.TestCase):
         temp = self.write_temp(lines)
         
         self.assertEqual(open_mutations(temp.name), {'TEST':
-            [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+            [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                 'consequence': 'missense_variant'}]})
     
     def test_open_mutations_without_header(self):
@@ -77,7 +77,7 @@ class TestLoadGenePy(unittest.TestCase):
         
         # check that we still pick up the correct columns based on the header
         self.assertEqual(open_mutations(temp.name), {'TEST':
-            [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+            [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                 'consequence': 'missense_variant'}]})
         
         # add an extra column, and check that the file is loaded as per usual
@@ -85,7 +85,7 @@ class TestLoadGenePy(unittest.TestCase):
             ['1', 'A', 'C', 'missense_variant', 'TEST', '200', 'something']]
         
         self.assertEqual(open_mutations(temp.name), {'TEST':
-            [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+            [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                 'consequence': 'missense_variant'}]})
     
     def test_open_mutations_multiple_variants(self):
@@ -99,9 +99,9 @@ class TestLoadGenePy(unittest.TestCase):
         temp = self.write_temp(lines)
         
         self.assertEqual(open_mutations(temp.name), {'TEST':
-            [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+            [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                 'consequence': 'missense_variant'},
-            {'chrom': '1', 'position': 300, 'ref': 'A', 'alt': 'C',
+            {'chrom': '1', 'pos': 300, 'ref': 'A', 'alt': 'C',
                 'consequence': 'missense_variant'}]})
     
     def test_open_mutations_multiple_genes(self):
@@ -116,10 +116,10 @@ class TestLoadGenePy(unittest.TestCase):
         
         self.assertEqual(open_mutations(temp.name), {
             'TEST':
-                [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+                [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                     'consequence': 'missense_variant'}],
             'TEST2':
-                [{'chrom': '1', 'position': 300, 'ref': 'A', 'alt': 'C',
+                [{'chrom': '1', 'pos': 300, 'ref': 'A', 'alt': 'C',
                     'consequence': 'missense_variant'}]
                 })
     
@@ -135,16 +135,16 @@ class TestLoadGenePy(unittest.TestCase):
         
         # check that indels are excluded by default
         self.assertEqual(open_mutations(temp.name), {'TEST':
-                [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+                [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                     'consequence': 'missense_variant'}]})
         
         # check that if we pass the indels=True argument, then we pick up indels
         self.assertEqual(open_mutations(temp.name, indels=True), {
             'TEST':
-                [{'chrom': '1', 'position': 200, 'ref': 'A', 'alt': 'C',
+                [{'chrom': '1', 'pos': 200, 'ref': 'A', 'alt': 'C',
                     'consequence': 'missense_variant'}],
             'TEST2':
-                [{'chrom': '1', 'position': 300, 'ref': 'A', 'alt': 'CG',
+                [{'chrom': '1', 'pos': 300, 'ref': 'A', 'alt': 'CG',
                     'consequence': 'frameshift_variant'}]})
     
     def test_open_mutations_consequence(self):
