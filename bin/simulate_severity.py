@@ -32,16 +32,20 @@ from denovonear.weights import WeightedChoice
 from severity.open_mutations import open_mutations
 from severity.open_severity import get_severity
 from severity.simulation import analyse
+from severity.regional_constraint import load_regional_constraint, get_constrained_positions
+from severity.weights import weights as WEIGHTS
 
 def get_options():
     parser = argparse.ArgumentParser('')
     parser.add_argument('--de-novos',
         default='/lustre/scratch113/projects/ddd/users/jm33/de_novos.ddd_4k.ddd_only.2015-11-24.txt',
-        help='path to table of de novo mutations. Table must contain columns ' \
+        help='path to table of de novo mutations. Table must contain columns '
             'named chrom, pos, ref, alt, symbol, and consequence.'),
     parser.add_argument('--cadd',
         default='/lustre/scratch113/projects/ddd/users/ps14/CADD/whole_genome_SNVs.tsv.gz',
         help='Path to tabix-indexed CADD scores for all SNVs.')
+    parser.add_argument('--constraint',
+        help='Path to table of regional constraint.')
     parser.add_argument('--cache', default='cache',
         help='Path to cache transcript coordinates and sequence from Ensembl.')
     parser.add_argument('--genome-build', default='grch37',
@@ -73,7 +77,11 @@ def get_site_sampler(transcripts, mut_dict):
         per position and alt allele.
     '''
     
-    all_rates = WeightedChoice()
+    consequences = ['synonymous', 'nonsense', 'missense', 'splice_lof']
+    all_rates = {}
+    for cq in consequences:
+        all_rates[cq] = WeightedChoice()
+    
     combined_tx = None
     for tx in transcripts:
         
@@ -83,12 +91,12 @@ def get_site_sampler(transcripts, mut_dict):
         else:
             combined_tx += tx
         
-        for cq in ['synonymous', 'nonsense', 'missense', 'splice_lof']:
-            all_rates.append(rates[cq])
+        for cq in consequences:
+            all_rates[cq].append(rates[cq])
     
     return all_rates
 
-def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos):
+def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos, constraint, weights):
     ''' analyse the severity of de novos found in a gene
     
     Args:
@@ -98,13 +106,17 @@ def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos):
         symbol: HGNC symbol for current gene
         de_novos: list of de novo mutations observed in current gene. Each entry
             is a dict with 'position', 'ref', 'alt', and 'consequence' keys.
+        weights: dictionary of objects to weight CADD severity scores. We have
+            different weights for protein-truncating and protein-altering
+            variants, and within the protein-altering variants, different
+            weights for variants in constrained and unconstrained regions.
     
     Returns:
         p-value for the observed total severity with respect to a null
         distribution of severities for the gene.
     '''
     
-    sites = [ x['position'] for x in de_novos ]
+    sites = [ x['pos'] for x in de_novos ]
     try:
         # create gene/transcript for de novo mutations
         transcripts = load_gene(ensembl, symbol, sites)
@@ -112,17 +124,22 @@ def analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos):
         return 'NA'
     
     # get per site/allele mutation rates
-    rates = get_site_sampler(transcripts, mut_dict)
+    rates_by_cq = get_site_sampler(transcripts, mut_dict)
     
     chrom = transcripts[0].get_chrom()
     
-    # get per site/allele severity scores
-    severity = get_severity(cadd, chrom, rates)
+    # get per site/allele severity scores, weighted by enrichment of missense
+    # in known dominant at different severity thresholds
+    constrained = get_constrained_positions(ensembl, constraint, symbol)
+    severity = get_severity(cadd, chrom, rates_by_cq, weights, constrained)
     
-    # TODO: weight severity scores
+    # convert the rates per site per consequence to rates per site
+    rates = WeightedChoice()
+    for cq in sorted(rates_by_cq):
+        rates.append(rates_by_cq[cq])
     
     # get summed score for observed de novos
-    observed = sum(( get_severity(cadd, chrom, de_novos) ))
+    observed = sum(( get_severity(cadd, chrom, de_novos, weights, constrained) ))
     
     # simulate distribution of summed scores within transcript
     return analyse(rates, severity, observed, len(de_novos), 1000000)
@@ -132,6 +149,8 @@ def main():
     
     ensembl = EnsemblRequest(args.cache, args.genome_build)
     cadd = pysam.TabixFile(args.cadd)
+    
+    constraint = load_regional_constraint(args.constraint)
     
     # open de novo mutations
     all_de_novos = open_mutations(args.de_novos)
@@ -146,7 +165,7 @@ def main():
         
         print(symbol)
         de_novos = all_de_novos[symbol]
-        p_value = analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos)
+        p_value = analyse_gene(ensembl, mut_dict, cadd, symbol, de_novos, constraint, WEIGHTS)
         line = '{}\t{}\n'.format(symbol, p_value)
         output.write(line)
 

@@ -19,39 +19,35 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import sys
-from setuptools import setup
-from distutils.core import Extension
-from Cython.Build import cythonize
 
-EXTRA_COMPILE_ARGS = ["-std=c++11"]
+from intervaltree import Interval, IntervalTree
 
-if sys.platform == "darwin":
-    EXTRA_COMPILE_ARGS = ["-stdlib=libc++"]
+# ranges and weights for missense sites in regions without regional constraint
+unconstrained = [
+    ( 0,  5, 0.89378999169559),
+    ( 5, 10, 2.45095807132636),
+    (10, 15, 1.23783036756664),
+    (15, 20, 1.04908176145445),
+    (20, 25, 2.13085809157198),
+    (25, 30, 4.97619976726511),
+    (30, 35, 6.73650544131241),
+    (35, 40, 5.68752647734537)]
 
-severity = cythonize([
-    Extension("severity.simulation",
-        extra_compile_args=EXTRA_COMPILE_ARGS,
-        sources=["severity/simulation.pyx",
-            "src/simulate.cpp",
-            "src/weighted_choice.cpp"],
-        include_dirs=["src/"],
-        language="c++"),
-    ])
+# ranges and weights for missense sites in regions with regional constraint
+constrained = [
+    ( 0,  5, 0.0),
+    ( 5, 10, 4.05516581596172),
+    (10, 15, 2.75708159237827),
+    (15, 20, 4.81275329358394),
+    (20, 25, 7.41041424690547),
+    (25, 30, 16.5358474569603),
+    (30, 35, 19.0139355018205),
+    (35, 40, 35.7654385873813)]
 
-setup (name="severity",
-        description="Package to examine severity of de novo mutations.",
-        version="1.0.0",
-        author="Jeremy McRae",
-        author_email="jeremy.mcrae@sanger.ac.uk",
-        license="MIT",
-        packages=["severity"],
-        install_requires=["intervaltree >= 2.1.0",
-                          "denovonear >= 0.4.1",
-        ],
-        classifiers=[
-            "Development Status :: 3 - Alpha",
-            "License :: OSI Approved :: MIT License",
-        ],
-        ext_modules=severity,
-        test_suite="tests")
+weights = {
+    'altering': {
+        'unconstrained': IntervalTree( Interval(*x) for x in unconstrained ),
+        'constrained': IntervalTree( Interval(*x) for x in constrained )
+        },
+    'truncating': 30.4986359738963
+    }

@@ -21,11 +21,41 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from itertools import groupby, count
 
+from severity.open_mutations import LOF_CQ
+
 def as_range(g):
     l = list(g)
     return l[0], l[-1]
 
-def get_severity(cadd, chrom, rates):
+def weight_site(site, consequence, scores, weights, constrained):
+    ''' convert CADD score to the reweighted score
+    
+    Args:
+        site: dict of data for a site. Includes 'pos' and 'alt' keys
+        consequence: vep-style consequence for the site
+        scores: dictionary of CADD scores, indexed by (position, alt) tuples
+        weights: dict of weights for different consequence types and CADD
+            thresholds.
+        constrained: IntervalTree defining ranges within regional constraint for
+            a gene.
+    
+    Returns:
+        reweighted score
+    '''
+    
+    score = scores[(site['pos'], site['alt'])]
+    
+    constraint = 'unconstrained'
+    if site['pos'] in constrained:
+        constraint = 'constrained'
+    
+    if consequence in LOF_CQ:
+        return weights['truncating']
+    else:
+        for x in weights['altering'][constraint][score]:
+            return x.data
+
+def get_severity(cadd, chrom, rates, weights, constrained):
     ''' get CADD scores for a specific alt at a specific site
     
     See downloadable CADD files here: http://cadd.gs.washington.edu/download
@@ -34,14 +64,16 @@ def get_severity(cadd, chrom, rates):
         cadd: pysam.TabixFile for quick fetching of CADD scores
         chrom: chromosome
         rates: Weighted Choice object for all sites in a gene
+        weights:
+        constrained: IntervalTree object for ranges under regional constraint
     
     Returns:
-        list of 9CADD score at the given site for the given alt allele
+        list of weighted score at the given site for the given alt allele
     '''
     
-    try:
-        positions = sorted(set([ x['position'] for x in rates ]))
-    except KeyError:
+    if type(rates) == dict:
+        positions = sorted(set([ x['pos'] for cq in rates for x in rates[cq] ]))
+    else:
         positions = sorted(set([ x['pos'] for x in rates ]))
     
     scores = {}
@@ -54,7 +86,9 @@ def get_severity(cadd, chrom, rates):
             scores[(int(pos), alt)] = float(score)
     
     # match the cadd scores to the order of sites in the rates object
-    try:
-        return [ scores[(x['position'], x['alt'])] for x in rates ]
-    except KeyError:
-        return [ scores[(x['pos'], x['alt'])] for x in rates ]
+    if type(rates) == dict:
+        cqs = {'synonymous': 'synonymous_variant', 'nonsense': 'stop_gained',
+            'missense': 'missense_variant', 'splice_lof': 'splice_donor_variant'}
+        return [ weight_site(x, cqs[cq], scores, weights, constrained) for cq in sorted(rates) for x in rates[cq] ]
+    else:
+        return [ weight_site(x, x['consequence'], scores, weights, constrained) for x in rates ]
