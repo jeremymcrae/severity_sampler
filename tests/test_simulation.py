@@ -49,6 +49,17 @@ class TestSimulationsPy(unittest.TestCase):
         # now check when we sample two de novo mutations
         p = analyse(rates, severity, 15, 2, iterations=100000)
         self.assertAlmostEqual(p, 0.25, places=2)
+    
+    def test_analyse_extreme_p_value(self):
+        ''' test when the observed severity score exceeds all possible values
+        '''
+        
+        rates = WeightedChoice()
+        rates.add_choice(200, 1e-5, 'A', 'G')
+        rates.add_choice(201, 2e-5, 'C', 'T')
+        rates.add_choice(202, 1e-5, 'C', 'G')
+        
+        severity = [5, 10, 5]
         
         # now check when the observed severity score exceeds all possible
         # values from the severity distribution. This test gives an absurd
@@ -59,13 +70,24 @@ class TestSimulationsPy(unittest.TestCase):
         # existsing scores.
         p = analyse(rates, severity, 20, 1, iterations=100000)
         self.assertAlmostEqual(p, 1e-6, places=4)
+    
+    def test_analyse_empty(self):
+        ''' check we raise an error if the rates and severity are empty
+        '''
         
-        # check we raise an erro if the rates and severity are empty
         with self.assertRaises(ValueError):
             analyse(WeightedChoice(), [], 8, 1, iterations=10000)
+    
+    def test_analyse_sample_zero(self):
+        ''' test we raise an error if the de novo count is zero
+        '''
+        rates = WeightedChoice()
+        rates.add_choice(200, 1e-5, 'A', 'G')
+        rates.add_choice(201, 2e-5, 'C', 'T')
         
+        severity = [5, 10]
         with self.assertRaises(ValueError):
-            analyse(rates, severity, 8, 0, iterations=10000)
+            analyse(rates, severity, 0, 0, iterations=10000)
     
     def test_analyse_mismatch(self):
         ''' test for error when the rates and severity lengths are different
