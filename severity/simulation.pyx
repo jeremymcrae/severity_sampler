@@ -26,7 +26,7 @@ from cython.operator cimport dereference as deref
 from denovonear.weights cimport WeightedChoice, Chooser
 
 cdef extern from "simulate.h":
-    double _analyse(Chooser, vector[double], double, int, int)
+    double _analyse(Chooser, vector[double], double, int, int) except +
 
 def analyse(WeightedChoice choices, severity, observed, count,
         iterations=100000000):
