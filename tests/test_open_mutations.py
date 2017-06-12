@@ -24,8 +24,8 @@ import tempfile
 
 from severity.open_mutations import open_mutations, parse_header, parse
 
-class TestLoadGenePy(unittest.TestCase):
-    ''' unit test functions to load genes
+class TestOpenMutationsPy(unittest.TestCase):
+    ''' unit test functions to open mutations
     '''
     
     def write_temp(self, lines):
