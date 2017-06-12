@@ -62,9 +62,11 @@ class TestSimulationsPy(unittest.TestCase):
         
         # check we raise an erro if the rates and severity are empty
         with self.assertRaises(ValueError):
-            rates = WeightedChoice()
-            analyse(rates, [], 8, 1, iterations=10000)
+            analyse(WeightedChoice(), [], 8, 1, iterations=10000)
         
+        with self.assertRaises(ValueError):
+            analyse(rates, severity, 8, 0, iterations=10000)
+    
     def test_analyse_mismatch(self):
         ''' test for error when the rates and severity lengths are different
         '''

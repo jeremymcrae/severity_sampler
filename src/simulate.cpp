@@ -55,6 +55,10 @@ double _analyse(Chooser &choices, std::vector<double> severity, double observed,
         throw std::invalid_argument("no per-base/allele rates supplied!");
     }
     
+    if (count == 0) {
+        throw std::invalid_argument("sampling zero de novos!");
+    }
+    
     // figure out how to map sites to severity scores. This requires at a given
     // index position the data within the choices object and the severity vector
     // are for the same site/alt allele.
