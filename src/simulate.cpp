@@ -47,18 +47,11 @@ double _analyse(Chooser &choices, std::vector<double> severity, double observed,
         severity score greater than or equal to the obsevered severity total.
     
     */
-    
-    if (choices.len() != (int)severity.size()) {
-        throw std::invalid_argument("severity scores do not match rates!");
-    }
-    
-    if (choices.len() == 0) {
-        throw std::invalid_argument("no per-base/allele rates supplied!");
-    }
-    
-    if (count == 0) {
-        throw std::invalid_argument("sampling zero de novos!");
-    }
+    int len = choices.len();
+    int sev_len = severity.size();
+    if (len != sev_len) { throw std::invalid_argument("severity scores do not match rates!"); }
+    if (len == 0) { throw std::invalid_argument("no per-base/allele rates supplied!"); }
+    if (count == 0) { throw std::invalid_argument("sampling zero de novos!"); }
     
     // figure out how to map sites to severity scores. This requires at a given
     // index position the data within the choices object and the severity vector
