@@ -77,7 +77,7 @@ def get_site_sampler(transcripts, mut_dict):
         per position and alt allele.
     '''
     
-    consequences = ['synonymous', 'nonsense', 'missense', 'splice_lof']
+    consequences = ['nonsense', 'missense', 'splice_lof']
     all_rates = {}
     for cq in consequences:
         all_rates[cq] = WeightedChoice()
