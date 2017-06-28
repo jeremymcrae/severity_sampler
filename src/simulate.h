@@ -29,5 +29,7 @@ std::map<int, std::map<std::string, double>> prepare_severity(Chooser &choices,
     std::vector<double> &severity);
 double _analyse(Chooser &choices, std::vector<double> severity, double observed,
     int count, int iterations);
+bool _halt_permutation(double p_val, int iterations, double z=10.0,
+    double alpha=0.01);
 
 #endif // SEVERITY_SIMULATE_H_
