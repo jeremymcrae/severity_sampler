@@ -24,16 +24,17 @@
 
 #include "simulate.h"
 
-std::map<Site, double> prepare_severity(Chooser &choices, std::vector<double> &severity) {
+std::map<int, std::map<std::string, double>> prepare_severity(Chooser &choices,
+    std::vector<double> &severity) {
     /**
         prepare severity scores, to map from site and alt to a given score
     */
     
-    std::map<Site, double> sites;
+    std::map<int, std::map<std::string, double>> sites;
     
     for (int i=0; i < choices.len(); i++) {
         auto x = choices.iter(i);
-        sites[Site {x.pos, x.offset, x.alt}] = severity[i];
+        sites[x.pos][x.alt] = severity[i];
     }
     
     return sites;
@@ -62,7 +63,7 @@ double _analyse(Chooser &choices, std::vector<double> severity, double observed,
     // figure out how to map sites to severity scores. This requires at a given
     // index position the data within the choices object and the severity vector
     // are for the same site/alt allele.
-    std::map<Site, double> scores = prepare_severity(choices, severity);
+    auto scores = prepare_severity(choices, severity);
     
     std::vector<double> dist;
     
