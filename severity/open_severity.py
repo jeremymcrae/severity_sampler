@@ -89,6 +89,13 @@ def get_severity(cadd, chrom, rates, weights, constrained):
     if type(rates) == dict:
         cqs = {'synonymous': 'synonymous_variant', 'nonsense': 'stop_gained',
             'missense': 'missense_variant', 'splice_lof': 'splice_donor_variant'}
-        return [ weight_site(x, cqs[cq], scores, weights, constrained) for cq in sorted(rates) for x in rates[cq] ]
+        return [ scores[x['pos'], x['alt']] for cq in sorted(rates) for x in rates[cq] ]
     else:
-        return [ weight_site(x, x['consequence'], scores, weights, constrained) for x in rates ]
+        return [ scores[x['pos'], x['alt']] for x in rates ]
+    # # match the cadd scores to the order of sites in the rates object
+    # if type(rates) == dict:
+    #     cqs = {'synonymous': 'synonymous_variant', 'nonsense': 'stop_gained',
+    #         'missense': 'missense_variant', 'splice_lof': 'splice_donor_variant'}
+    #     return [ weight_site(x, cqs[cq], scores, weights, constrained) for cq in sorted(rates) for x in rates[cq] ]
+    # else:
+    #     return [ weight_site(x, x['consequence'], scores, weights, constrained) for x in rates ]
